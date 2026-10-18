@@ -1,3 +1,8 @@
 node_modules/
 .env
 npm-debug.log*
+
+# Local JSON data is initialized automatically and contains runtime changes.
+data/student-management.json
+
+.env

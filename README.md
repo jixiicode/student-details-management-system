@@ -1,10 +1,10 @@
 # CampusCore Student Management System
 
-A responsive Student Management System for a BTech DBMS project. It uses HTML/CSS/JavaScript on the frontend, Express on Node.js for REST APIs, and MySQL 8 for persistent relational data.
+A responsive Student Management System using HTML/CSS/JavaScript on the frontend and Express on Node.js for REST APIs. It stores its data in a local JSON file, so no database server or Docker setup is required.
 
 ## Features
 
-- Dynamic dashboard: student, department, course, and average-score statistics from MySQL.
+- Dynamic dashboard: student, department, course, and average-score statistics from the local JSON datastore.
 - Student CRUD, profile pages, name/enrollment search, sorting, and pagination.
 - Department and course CRUD with foreign-key protection against unsafe deletes.
 - Result CRUD, student/course search, database validation, and automatic grade calculation.
@@ -12,15 +12,8 @@ A responsive Student Management System for a BTech DBMS project. It uses HTML/CS
 
 ## Setup
 
-1. Install [Node.js LTS](https://nodejs.org/) and MySQL 8. Start your MySQL server.
-2. In MySQL Workbench or a terminal, import the schema and sample records:
-
-   ```bash
-   mysql -u root -p < database.sql
-   ```
-
-3. Copy `.env.example` to `.env`, then set your real MySQL password and connection details. Do not commit `.env`.
-4. Install dependencies and start the app:
+1. Install [Node.js LTS](https://nodejs.org/).
+2. Install dependencies and start the app:
 
    ```bash
    npm install
@@ -29,9 +22,21 @@ A responsive Student Management System for a BTech DBMS project. It uses HTML/CS
 
    During development, use `npm run dev` to restart automatically after changes.
 
-5. Open [http://localhost:3000](http://localhost:3000). Add, edit, search, view, and delete records through the dashboard. The API runs under `/api`, for example `GET /api/students`.
+3. Open [http://localhost:3000](http://localhost:3000). Add, edit, search, view, and delete records through the dashboard. The API runs under `/api`, for example `GET /api/students`.
 
-## Database design and viva notes
+On the first start, the app creates `data/student-management.json` with sample departments, courses, students, and results. Later changes persist in that file. Delete it only when you intentionally want the sample data created again.
+
+## Run without configuring local MySQL
+
+With Docker Desktop installed and running, this command starts the website and persists its JSON data in a Docker volume:
+
+```bash
+docker compose up --build -d
+```
+
+Check the running service with `docker compose ps`. To stop it, use `docker compose down`. The JSON data is retained in the `json_data` Docker volume; use `docker compose down -v` only when you intentionally want to delete the container data and recreate the sample data.
+
+## Legacy MySQL schema
 
 | Relationship | Implementation |
 | --- | --- |
@@ -40,9 +45,7 @@ A responsive Student Management System for a BTech DBMS project. It uses HTML/CS
 | Student → Results | `results.student_id` references `students.student_id` |
 | Course → Results | `results.course_id` references `courses.course_id` |
 
-All relationships use InnoDB foreign keys with `ON DELETE RESTRICT`, preventing a department, course, or student from being removed while a dependent row exists. The schema also demonstrates primary keys, unique enrollment/email/course code constraints, `CHECK` constraints for marks, credit, and semester ranges, plus indexes for common searches.
-
-The dashboard uses aggregate queries: `COUNT(*)` for totals and `AVG(marks_obtained / maximum_marks * 100)` for the examination average. Student/profile/result screens use `JOIN` queries to combine related names and codes. API queries use `?` placeholders with mysql2 parameter binding, which protects against SQL injection.
+The original MySQL schema remains in `database.sql` for project documentation. The JSON runtime enforces the same unique enrollment/email/course-code checks and prevents deletion when related records exist.
 
 ## API overview
 
